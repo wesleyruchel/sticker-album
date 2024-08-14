@@ -1,8 +1,6 @@
-﻿using APIStickerAlbum.Context;
+﻿using APIStickerAlbum.Interfaces;
 using APIStickerAlbum.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 
 namespace APIStickerAlbum.Controllers
 {
@@ -10,39 +8,30 @@ namespace APIStickerAlbum.Controllers
     [ApiController]
     public class AlbumsController : ControllerBase
     {
-        private readonly APIStickerAlbumDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public AlbumsController(APIStickerAlbumDbContext context)
+        public AlbumsController(IUnitOfWork unitOfWork)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Album>>> Get()
         {
-            var albums = await _context.Albums
-                .AsNoTracking()
-                .Include(a => a.Stickers)
-                .ToListAsync();
+            var albums = await _unitOfWork.AlbumRepository.GetAllAsync();
 
-            if (albums.IsNullOrEmpty())
-                return NotFound("Nenhum álbum encontrado.");
-
-            return albums;
+            return Ok(albums);
         }
 
         [HttpGet("{id}", Name = "GetAlbumById")]
         public ActionResult<Album> Get(int id)
         {
-            var album = _context.Albums
-                .AsNoTracking()
-                .Include(a => a.Stickers)
-                .FirstOrDefault(a => a.Id == id);
+            var album = _unitOfWork.AlbumRepository.Get(a => a.Id == id);
 
             if (album is null)
                 return NotFound("Nenhum álbum encontrado com o parâmetro informado.");
 
-            return album;
+            return Ok(album);
         }
 
         [HttpPost]
@@ -51,10 +40,11 @@ namespace APIStickerAlbum.Controllers
             if (album is null)
                 return BadRequest("Dados inválidos.");
 
-            _context.Albums.Add(album);
-            _context.SaveChanges();
+            var created = _unitOfWork.AlbumRepository.Create(album);
+            
+            _unitOfWork.Commit();
 
-            return new CreatedAtRouteResult("GetAlbumById", new { id = album.Id }, album);
+            return new CreatedAtRouteResult("GetAlbumById", new { id = created.Id }, created);
         }
 
         [HttpPut("{id}")]
@@ -63,8 +53,9 @@ namespace APIStickerAlbum.Controllers
             if (id != album.Id)
                 return BadRequest("Dados inválidos.");
 
-            _context.Entry(album).State = EntityState.Modified;
-            _context.SaveChanges();
+            _unitOfWork.AlbumRepository.Update(album);
+
+            _unitOfWork.Commit();
 
             return Ok(album);
         }
@@ -72,16 +63,16 @@ namespace APIStickerAlbum.Controllers
         [HttpDelete("{id}")]
         public ActionResult Delete(int id)
         {
-            var album = _context.Albums
-                .FirstOrDefault(a => a.Id == id);
+            var album = _unitOfWork.AlbumRepository.Get(a => a.Id == id);
 
             if (album is null)
                 return BadRequest("Dados inválidos.");
 
-            _context.Albums.Remove(album);
-            _context.SaveChanges();
+            var deleted = _unitOfWork.AlbumRepository.Delete(album);
 
-            return Ok(album);
+            _unitOfWork.Commit();
+
+            return Ok(deleted);
         }
     }
 }

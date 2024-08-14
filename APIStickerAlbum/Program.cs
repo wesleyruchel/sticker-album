@@ -1,6 +1,8 @@
 using APIStickerAlbum.Context;
 using APIStickerAlbum.Extensions;
 using APIStickerAlbum.Filters;
+using APIStickerAlbum.Interfaces;
+using APIStickerAlbum.Repositories;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 
@@ -18,8 +20,16 @@ builder.Services.AddControllers(options =>
 });
 
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen();
+
 builder.Services.AddDbContext<APIStickerAlbumDbContext>(options => options.UseSqlServer(sqlConn));
+
+builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
+
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 var app = builder.Build();
 
