@@ -9,7 +9,7 @@ public class User
     public string? Name { get; set; }
     public string Username { get; set; } = null!;
     public string Password { get; set; } = null!;
-    public DateTime Created { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     [JsonIgnore]
     public virtual ICollection<EducatorsAlbum> EducatorsAlbums { get; set; } = new List<EducatorsAlbum>();
@@ -19,4 +19,9 @@ public class User
 
     [JsonIgnore]
     public virtual ICollection<LearnersSticker> LearnersStickers { get; set; } = new List<LearnersSticker>();
+
+    public User()
+    {
+        this.CreatedAt = DateTime.UtcNow;
+    }
 }
