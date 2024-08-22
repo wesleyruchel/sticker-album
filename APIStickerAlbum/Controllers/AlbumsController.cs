@@ -41,7 +41,6 @@ namespace APIStickerAlbum.Controllers
                 return BadRequest("Dados inválidos.");
 
             var created = _unitOfWork.AlbumRepository.Create(album);
-            
             _unitOfWork.Commit();
 
             return new CreatedAtRouteResult("GetAlbumById", new { id = created.Id }, created);
@@ -54,7 +53,6 @@ namespace APIStickerAlbum.Controllers
                 return BadRequest("Dados inválidos.");
 
             _unitOfWork.AlbumRepository.Update(album);
-
             _unitOfWork.Commit();
 
             return Ok(album);
@@ -69,7 +67,6 @@ namespace APIStickerAlbum.Controllers
                 return BadRequest("Dados inválidos.");
 
             var deleted = _unitOfWork.AlbumRepository.Delete(album);
-
             _unitOfWork.Commit();
 
             return Ok(deleted);

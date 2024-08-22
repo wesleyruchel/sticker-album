@@ -1,4 +1,5 @@
 ﻿using APIStickerAlbum.Context;
+using APIStickerAlbum.Interfaces;
 using APIStickerAlbum.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -10,32 +11,25 @@ namespace APIStickerAlbum.Controllers
     [ApiController]
     public class StickersController : ControllerBase
     {
-        private readonly APIStickerAlbumDbContext _context;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public StickersController(APIStickerAlbumDbContext context)
+        public StickersController(IUnitOfWork unitOfWork)
         {
-            _context = context;
+            _unitOfWork = unitOfWork;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Sticker>>> Get()
         {
-            var stickers = await _context.Stickers
-                .AsNoTracking()
-                .ToListAsync();
+            var stickers = await _unitOfWork.StickerRepository.GetAllAsync();
 
-            if (stickers is null)
-                return NotFound("Nenhuma figurinha encontrada.");
-
-            return stickers;
+            return Ok(stickers);
         }
 
         [HttpGet("{id}", Name = "GetStickerById")]
         public ActionResult<Sticker> Get(int id)
         {
-            var sticker = _context.Stickers
-                .AsNoTracking()
-                .FirstOrDefault(a => a.Id == id);
+            var sticker = _unitOfWork.StickerRepository.Get(s => s.Id == id);
 
             if (sticker is null)
                 return NotFound("Nenhuma figurinha encontrada com o parâmetro informado.");
@@ -49,10 +43,10 @@ namespace APIStickerAlbum.Controllers
             if (sticker is null)
                 return BadRequest("Dados inválidos.");
 
-            _context.Stickers.Add(sticker);
-            _context.SaveChanges();
+            var created = _unitOfWork.StickerRepository.Create(sticker);
+            _unitOfWork.Commit();
 
-            return new CreatedAtRouteResult("GetStickerById", new { id = sticker.Id }, sticker);
+            return new CreatedAtRouteResult("GetStickerById", new { id = created.Id }, created);
         }
 
         [HttpPut("{id}")]
@@ -61,8 +55,8 @@ namespace APIStickerAlbum.Controllers
             if (id != sticker.Id)
                 return BadRequest("Dados inválidos.");
 
-            _context.Entry(sticker).State = EntityState.Modified;
-            _context.SaveChanges();
+            _unitOfWork.StickerRepository.Update(sticker);
+            _unitOfWork.Commit();
 
             return Ok(sticker);
         }
@@ -70,16 +64,15 @@ namespace APIStickerAlbum.Controllers
         [HttpDelete("{id}")]
         public ActionResult Delete(int id)
         {
-            var sticker = _context.Stickers
-                .FirstOrDefault(s => s.Id == id);
+            var sticker = _unitOfWork.StickerRepository.Get(s => s.Id == id);
 
             if (sticker is null)
                 return BadRequest("Dados inválidos.");
 
-            _context.Stickers.Remove(sticker);
-            _context.SaveChanges();
+            var deleted = _unitOfWork.StickerRepository.Delete(sticker);
+            _unitOfWork.Commit();
 
-            return Ok(sticker);
+            return Ok(deleted);
         }
     }
 }
