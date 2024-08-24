@@ -14,12 +14,12 @@ public class AuthController : ControllerBase
 {
     private readonly ITokenService _tokenService;
     private readonly UserManager<ApplicationUser> _userManager;
-    private readonly RoleManager<IdentityRole> _roleManager;
+    private readonly RoleManager<IdentityRole<int>> _roleManager;
     private readonly IConfiguration _configuration;
 
     public AuthController(ITokenService tokenService,
                             UserManager<ApplicationUser> userManager,
-                            RoleManager<IdentityRole> roleManager,
+                            RoleManager<IdentityRole<int>> roleManager,
                             IConfiguration configuration)
     {
         _tokenService = tokenService;
@@ -39,8 +39,10 @@ public class AuthController : ControllerBase
             var userRoles = await _userManager.GetRolesAsync(user);
             var authClaims = new List<Claim>
             {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName!),
                 new Claim(ClaimTypes.Email, user.Email!),
+                new Claim(ClaimTypes.GivenName, user.FirstName!),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
@@ -84,6 +86,9 @@ public class AuthController : ControllerBase
 
         ApplicationUser user = new()
         {
+            Type = modelDTO.Type!,
+            FirstName = modelDTO.FirstName!,
+            LastName = modelDTO.LastName!,
             Email = modelDTO.Email,
             SecurityStamp = Guid.NewGuid().ToString(),
             UserName = modelDTO.Username

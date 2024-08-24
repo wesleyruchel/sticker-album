@@ -4,6 +4,14 @@ namespace APIStickerAlbum.DTOs;
 
 public class RegisterModelDTO
 {
+
+    [Required(ErrorMessage = "O tipo do usuário é obrigatório")]
+    public string? Type { get; set; }
+
+    public string? FirstName { get; set; }
+    
+    public string? LastName { get; set; }
+
     [Required(ErrorMessage = "O nome de usuário é obrigatório")]
     public string? Username {  get; set; }
 
