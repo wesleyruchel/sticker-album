@@ -22,7 +22,7 @@ public class UnitOfWork : IUnitOfWork
 
     public IStickerRepository StickerRepository
     {
-        get { return _stickerRepository = StickerRepository ?? new StickerRepository(_context); }
+        get { return _stickerRepository = _stickerRepository ?? new StickerRepository(_context); }
     }
 
     public void Commit()

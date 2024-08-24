@@ -1,8 +1,7 @@
 ﻿using APIStickerAlbum.Models;
 
-namespace APIStickerAlbum.Interfaces
+namespace APIStickerAlbum.Interfaces;
+
+public interface IStickerRepository : IRepository<Sticker>
 {
-    public interface IStickerRepository : IRepository<Sticker>
-    {
-    }
 }
