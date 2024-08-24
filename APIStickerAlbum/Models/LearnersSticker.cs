@@ -14,5 +14,5 @@ public class LearnersSticker
     public virtual Sticker Sticker { get; set; } = null!;
 
     [JsonIgnore]
-    public virtual User User { get; set; } = null!;
+    public virtual ApplicationUser User { get; set; } = null!;
 }

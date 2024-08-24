@@ -10,7 +10,7 @@ public class Album
     public bool Community { get; set; }
     public bool Shared { get; set; }
     public bool Blocked { get; set; }
-    public DateTime CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
    
     [JsonIgnore]
     public virtual ICollection<EducatorsAlbum> EducatorsAlbums { get; set; } = new List<EducatorsAlbum>();
@@ -20,9 +20,4 @@ public class Album
 
     [JsonIgnore]
     public virtual ICollection<Sticker> Stickers { get; set; } = new List<Sticker>();
-
-    public Album()
-    {
-        this.CreatedAt = DateTime.UtcNow;
-    }
 }

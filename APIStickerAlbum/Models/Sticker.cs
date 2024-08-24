@@ -11,7 +11,7 @@ public class Sticker
     public int AlbumId { get; set; }
 
     [JsonIgnore]
-    public virtual Album Album { get; set; } = null!;
+    public virtual Album? Album { get; set; }
 
     [JsonIgnore]
     public virtual ICollection<LearnersSticker> LearnersStickers { get; set; } = new List<LearnersSticker>();
