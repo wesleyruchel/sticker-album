@@ -1,18 +1,22 @@
 ﻿using APIStickerAlbum.Interfaces;
 using APIStickerAlbum.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace APIStickerAlbum.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class AlbumsController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
+        private readonly ICurrentUserService _currentUserService;
 
-        public AlbumsController(IUnitOfWork unitOfWork)
+        public AlbumsController(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
         {
             _unitOfWork = unitOfWork;
+            _currentUserService = currentUserService;
         }
 
         [HttpGet]
@@ -35,10 +39,25 @@ namespace APIStickerAlbum.Controllers
         }
 
         [HttpPost]
-        public ActionResult Post(Album album)
+        public async Task<ActionResult> Post(Album album)
         {
             if (album is null)
                 return BadRequest("Dados inválidos.");
+            
+            var user = await _currentUserService.GetCurrentUserAsync();
+
+            // TO-DO :: Abstrair regra de negócio
+            if (user is null || user.Type.ToLower() != "educador")
+                return BadRequest("Usuário não encontrado ou autenticação inválida.");
+
+            album.EducatorsAlbums = new List<EducatorsAlbum>
+            { 
+                new EducatorsAlbum
+                {
+                    Album = album,
+                    User = user
+                }
+            };
 
             var created = _unitOfWork.AlbumRepository.Create(album);
             _unitOfWork.Commit();
