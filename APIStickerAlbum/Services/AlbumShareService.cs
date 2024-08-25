@@ -19,6 +19,7 @@ public class AlbumShareService : IAlbumShareService
 
     public string ShareAlbum(int albumId, int sharedByUserId)
     {
+        var shareCode = "";
         var album = _unitOfWork.AlbumRepository.Get(a => a.Id == albumId);
 
         if (album is null)
@@ -28,20 +29,24 @@ public class AlbumShareService : IAlbumShareService
         {
             album.Shared = true;
             _unitOfWork.AlbumRepository.Update(album);
+
+            shareCode = GenerateShareCode();
+            var albumShare = new AlbumShare
+            {
+                AlbumId = albumId,
+                SharedByUserId = sharedByUserId,
+                ShareCode = shareCode,
+                ShareAt = DateTime.UtcNow,
+            };
+
+            var created = _unitOfWork.AlbumShareRepository.Create(albumShare);
+            _unitOfWork.Commit();
+        }
+        else
+        {
+            shareCode = _unitOfWork.AlbumShareRepository.Get(a => a.AlbumId == albumId)!.ShareCode;
         }
 
-        var shareCode = GenerateShareCode();
-        var albumShare = new AlbumShare
-        {
-            AlbumId = albumId,
-            SharedByUserId = sharedByUserId,
-            ShareCode = shareCode,
-            ShareAt = DateTime.UtcNow,
-        };
-
-        var created = _unitOfWork.AlbumShareRepository.Create(albumShare);
-        _unitOfWork.Commit();
-
-        return created.ShareCode;
+        return shareCode;
     }
 }

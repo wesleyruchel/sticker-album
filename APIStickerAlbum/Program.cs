@@ -96,6 +96,7 @@ builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
 builder.Services.AddScoped<IAlbumShareRepository, AlbumShareRepository>();
 builder.Services.AddScoped<IAlbumShareService, AlbumShareService>();
 builder.Services.AddScoped<IStickerRepository, StickerRepository>();
+builder.Services.AddScoped<ILearnersAlbumRepository, LearnersAlbumRepository>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 var app = builder.Build();

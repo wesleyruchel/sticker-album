@@ -8,6 +8,7 @@ public class UnitOfWork : IUnitOfWork
     private IAlbumRepository? _albumRepository;
     private IAlbumShareRepository? _albumShareRepository;
     private IStickerRepository? _stickerRepository;
+    private ILearnersAlbumRepository? _learnersAlbumRepository;
     public APIStickerAlbumDbContext _context;
 
     public UnitOfWork(APIStickerAlbumDbContext context)
@@ -29,6 +30,11 @@ public class UnitOfWork : IUnitOfWork
     public IStickerRepository StickerRepository
     {
         get { return _stickerRepository = _stickerRepository ?? new StickerRepository(_context); }
+    }
+
+    public ILearnersAlbumRepository LearnersAlbumRepository
+    {
+        get { return _learnersAlbumRepository = _learnersAlbumRepository ?? new LearnersAlbumRepository(_context); }
     }
 
     public void Commit()

@@ -44,15 +44,17 @@ public class ApplicationUserController : ControllerBase
             return NotFound("Álbum não encontrado");
 
         var user = await _currentUserService.GetCurrentUserAsync();
-
-        album.LearnersAlbums = new List<LearnersAlbum>
-        {
-            new LearnersAlbum
-            {
-                Album = album,
-                User = user
-            }
+        var learnerAlbum = new LearnersAlbum
+        { 
+            AlbumId = album.Id,
+            UserId = user.Id
         };
+
+        if (!_unitOfWork.LearnersAlbumRepository.Exists(learnerAlbum))
+        {
+            _unitOfWork.LearnersAlbumRepository.Create(learnerAlbum);
+            _unitOfWork.Commit();
+        }
 
         return Ok(album);
     }
