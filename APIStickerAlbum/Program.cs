@@ -93,6 +93,8 @@ builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IAlbumRepository, AlbumRepository>();
+builder.Services.AddScoped<IAlbumShareRepository, AlbumShareRepository>();
+builder.Services.AddScoped<IAlbumShareService, AlbumShareService>();
 builder.Services.AddScoped<IStickerRepository, StickerRepository>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 

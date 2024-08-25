@@ -6,6 +6,7 @@ namespace APIStickerAlbum.Repositories;
 public class UnitOfWork : IUnitOfWork
 {
     private IAlbumRepository? _albumRepository;
+    private IAlbumShareRepository? _albumShareRepository;
     private IStickerRepository? _stickerRepository;
     public APIStickerAlbumDbContext _context;
 
@@ -18,6 +19,11 @@ public class UnitOfWork : IUnitOfWork
     public IAlbumRepository AlbumRepository
     {
         get { return _albumRepository = _albumRepository ?? new AlbumRepository(_context); }
+    }
+
+    public IAlbumShareRepository AlbumShareRepository
+    {
+        get { return _albumShareRepository = _albumShareRepository ?? new AlbumShareRepository(_context); }
     }
 
     public IStickerRepository StickerRepository

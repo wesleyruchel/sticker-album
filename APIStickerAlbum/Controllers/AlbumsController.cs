@@ -12,11 +12,14 @@ namespace APIStickerAlbum.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IAlbumShareService _albumShareService;
 
-        public AlbumsController(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+        public AlbumsController(IUnitOfWork unitOfWork, ICurrentUserService currentUserService,
+            IAlbumShareService albumShareService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
+            _albumShareService = albumShareService;
         }
 
         [HttpGet]
@@ -43,7 +46,7 @@ namespace APIStickerAlbum.Controllers
         {
             if (album is null)
                 return BadRequest("Dados inválidos.");
-            
+
             var user = await _currentUserService.GetCurrentUserAsync();
 
             // TO-DO :: Abstrair regra de negócio
@@ -51,7 +54,7 @@ namespace APIStickerAlbum.Controllers
                 return BadRequest("Usuário não encontrado ou autenticação inválida.");
 
             album.EducatorsAlbums = new List<EducatorsAlbum>
-            { 
+            {
                 new EducatorsAlbum
                 {
                     Album = album,
@@ -63,6 +66,16 @@ namespace APIStickerAlbum.Controllers
             _unitOfWork.Commit();
 
             return new CreatedAtRouteResult("GetAlbumById", new { id = created.Id }, created);
+        }
+
+        [HttpPost]
+        [Route("{id}/share")]
+        public async Task<IActionResult> Share(int id)
+        {
+            var user = await _currentUserService.GetCurrentUserAsync();
+            var shareCode = _albumShareService.ShareAlbum(id, user.Id);
+
+            return Ok(new { ShareCode = shareCode, Message = "Compartilhado com sucesso" });
         }
 
         [HttpPut("{id}")]

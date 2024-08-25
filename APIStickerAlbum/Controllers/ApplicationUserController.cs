@@ -29,4 +29,31 @@ public class ApplicationUserController : ControllerBase
         return Ok(albums);
     }
 
+    [HttpGet]
+    [Route("add/album/{shareCode}")]
+    public async Task<IActionResult> GetAlbumByShareCode(string shareCode) 
+    {
+        var albumShare = _unitOfWork.AlbumShareRepository.Get(a => a.ShareCode == shareCode);
+
+        if (albumShare is null)
+            return NotFound("Código de compartilhamento inválido");
+
+        var album = _unitOfWork.AlbumRepository.Get(a => a.Id == albumShare.AlbumId);
+
+        if (album is null)
+            return NotFound("Álbum não encontrado");
+
+        var user = await _currentUserService.GetCurrentUserAsync();
+
+        album.LearnersAlbums = new List<LearnersAlbum>
+        {
+            new LearnersAlbum
+            {
+                Album = album,
+                User = user
+            }
+        };
+
+        return Ok(album);
+    }
 }
