@@ -4,5 +4,5 @@ namespace APIStickerAlbum.Interfaces;
 
 public interface IAlbumRepository : IRepository<Album>
 {
-    // GetAlbumsByName()
+    IEnumerable<Album> GetAlbumsByAuthenticatedUser(int userId, string userType);
 }
