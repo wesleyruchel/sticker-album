@@ -16,7 +16,6 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 var sqlConn = builder.Configuration.GetConnectionString("DefaultConnection");
 
-// Add services to the container.
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add(typeof(ApiExceptionFilter));
@@ -97,6 +96,7 @@ builder.Services.AddScoped<IAlbumShareRepository, AlbumShareRepository>();
 builder.Services.AddScoped<IAlbumShareService, AlbumShareService>();
 builder.Services.AddScoped<IStickerRepository, StickerRepository>();
 builder.Services.AddScoped<ILearnersAlbumRepository, LearnersAlbumRepository>();
+builder.Services.AddScoped<IStorageService, LocalStorageService>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 var app = builder.Build();
