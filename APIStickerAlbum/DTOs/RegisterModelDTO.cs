@@ -21,4 +21,8 @@ public class RegisterModelDTO
 
     [Required(ErrorMessage = "A senha é obrigatória")]
     public string? Password { get; set; }
+
+    [Required(ErrorMessage = "A confirmação da  senha é obrigatória")]
+    [Compare("Password", ErrorMessage = "As senhas não conferem")]
+    public string? ConfirmPassword { get; set; }
 }
