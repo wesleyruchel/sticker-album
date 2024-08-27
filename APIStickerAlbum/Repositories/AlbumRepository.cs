@@ -25,4 +25,11 @@ public class AlbumRepository : Repository<Album>, IAlbumRepository
                 .Select(ea => ea.Album)
                 .ToList();
     }
+
+    public IEnumerable<Sticker> GetStickersAlbumByAlbumId(int albumId)
+    {
+        return _context.Stickers
+            .Where(s => s.AlbumId == albumId)
+            .ToList();
+    }
 }

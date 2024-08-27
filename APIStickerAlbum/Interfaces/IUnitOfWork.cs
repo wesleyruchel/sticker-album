@@ -6,5 +6,6 @@ public interface IUnitOfWork
     IAlbumShareRepository AlbumShareRepository { get; }
     IStickerRepository StickerRepository { get; }
     ILearnersAlbumRepository LearnersAlbumRepository { get; }
+    ILearnersStickerRepository LearnersStickerRepository { get; }
     void Commit();
 }

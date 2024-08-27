@@ -2,7 +2,6 @@
 using APIStickerAlbum.DTOs.Mappings;
 using APIStickerAlbum.Interfaces;
 using APIStickerAlbum.Models;
-using APIStickerAlbum.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -16,13 +15,15 @@ public class ApplicationUserController : ControllerBase
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
     private readonly IAlbumShareService _albumShareService;
+    private readonly IStorageService _storageService;
 
     public ApplicationUserController(IUnitOfWork unitOfWork, ICurrentUserService currentUserService,
-        IAlbumShareService albumShareService)
+        IAlbumShareService albumShareService, IStorageService storageService)
     {
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
         _albumShareService = albumShareService;
+        _storageService = storageService;
     }
 
     [HttpGet]
@@ -47,7 +48,7 @@ public class ApplicationUserController : ControllerBase
 
     [HttpGet]
     [Route("albums/shered/{shareCode}")]
-    public async Task<ActionResult<AlbumDetailsDTO>> GetAlbumByShareCode(string shareCode) 
+    public async Task<ActionResult<AlbumDetailsDTO>> GetAlbumByShareCode(string shareCode)
     {
         var albumShare = _unitOfWork.AlbumShareRepository.Get(a => a.ShareCode == shareCode);
 
@@ -61,7 +62,7 @@ public class ApplicationUserController : ControllerBase
 
         var user = await _currentUserService.GetCurrentUserAsync();
         var learnerAlbum = new LearnersAlbum
-        { 
+        {
             AlbumId = album.Id,
             UserId = user.Id
         };
@@ -73,5 +74,33 @@ public class ApplicationUserController : ControllerBase
         }
 
         return Ok(album.ToAlbumDetailsDTO());
+    }
+
+    [HttpPost]
+    [Route("albums/stickers")]
+    public async Task<ActionResult<Sticker>> PostStickerAlbum(LearnerStickerCreateDTO learnerStickerCreateDTO)
+    {
+        if (learnerStickerCreateDTO is null)
+            return BadRequest("Dados inválidos");
+
+        var user = await _currentUserService.GetCurrentUserAsync();
+        var learnerSticker = new LearnersSticker
+        { 
+            UserId = user.Id,
+            StickerId = learnerStickerCreateDTO.StickerId
+        };
+
+        if (!string.IsNullOrEmpty(learnerStickerCreateDTO.ImageBase64))
+        {
+            var imageBytes = Convert.FromBase64String(learnerStickerCreateDTO.ImageBase64);
+            var fileName = $"{Guid.NewGuid()}.jpg";
+
+            learnerSticker.ImageUrl = await _storageService.UploadFileAsync(new MemoryStream(imageBytes), fileName, "image/jpeg");
+        }
+
+        var created = _unitOfWork.LearnersStickerRepository.Create(learnerSticker);
+        _unitOfWork.Commit();
+
+        return Ok(created);
     }
 }
