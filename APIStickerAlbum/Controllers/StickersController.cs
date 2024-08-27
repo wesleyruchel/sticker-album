@@ -1,9 +1,6 @@
-﻿using APIStickerAlbum.Context;
-using APIStickerAlbum.Interfaces;
+﻿using APIStickerAlbum.Interfaces;
 using APIStickerAlbum.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace APIStickerAlbum.Controllers
 {
@@ -34,7 +31,7 @@ namespace APIStickerAlbum.Controllers
             if (sticker is null)
                 return NotFound("Nenhuma figurinha encontrada com o parâmetro informado.");
 
-            return sticker;
+            return Ok(sticker);
         }
 
         [HttpPost]

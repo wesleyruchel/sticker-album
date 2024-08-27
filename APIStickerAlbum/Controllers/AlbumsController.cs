@@ -14,15 +14,13 @@ namespace APIStickerAlbum.Controllers
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly ICurrentUserService _currentUserService;
-        private readonly IAlbumShareService _albumShareService;
         private readonly IStorageService _storageService;
 
         public AlbumsController(IUnitOfWork unitOfWork, ICurrentUserService currentUserService,
-            IAlbumShareService albumShareService, IStorageService storageService)
+            IStorageService storageService)
         {
             _unitOfWork = unitOfWork;
             _currentUserService = currentUserService;
-            _albumShareService = albumShareService;
             _storageService = storageService;
         }
 
@@ -43,6 +41,18 @@ namespace APIStickerAlbum.Controllers
                 return NotFound("Nenhum álbum encontrado com o parâmetro informado.");
 
             return Ok(album.ToAlbumDetailsDTO());
+        }
+
+        [HttpGet]
+        [Route("{id}/stickers")]
+        public ActionResult<Sticker> GetStickers(int id) 
+        {
+            var stickers = _unitOfWork.AlbumRepository.GetStickersAlbumByAlbumId(id);
+
+            if (stickers is null)
+                return NotFound("Nenhuma figurinha encontrada para o álbum informado");
+
+            return Ok(stickers);
         }
 
         [HttpPost]
@@ -79,16 +89,6 @@ namespace APIStickerAlbum.Controllers
             _unitOfWork.Commit();
 
             return new CreatedAtRouteResult("GetAlbumById", new { id = created.Id }, created);
-        }
-
-        [HttpPost]
-        [Route("{id}/share")]
-        public async Task<IActionResult> Share(int id)
-        {
-            var user = await _currentUserService.GetCurrentUserAsync();
-            var shareCode = _albumShareService.ShareAlbum(id, user.Id);
-
-            return Ok(new { ShareCode = shareCode, Message = "Compartilhado com sucesso" });
         }
 
         [HttpPut("{id}")]

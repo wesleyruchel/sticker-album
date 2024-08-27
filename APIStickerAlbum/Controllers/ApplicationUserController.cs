@@ -1,5 +1,8 @@
-﻿using APIStickerAlbum.Interfaces;
+﻿using APIStickerAlbum.DTOs;
+using APIStickerAlbum.DTOs.Mappings;
+using APIStickerAlbum.Interfaces;
 using APIStickerAlbum.Models;
+using APIStickerAlbum.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,26 +15,39 @@ public class ApplicationUserController : ControllerBase
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly ICurrentUserService _currentUserService;
+    private readonly IAlbumShareService _albumShareService;
 
-    public ApplicationUserController(IUnitOfWork unitOfWork, ICurrentUserService currentUserService)
+    public ApplicationUserController(IUnitOfWork unitOfWork, ICurrentUserService currentUserService,
+        IAlbumShareService albumShareService)
     {
         _unitOfWork = unitOfWork;
         _currentUserService = currentUserService;
+        _albumShareService = albumShareService;
     }
 
     [HttpGet]
     [Route("albums")]
-    public async Task<ActionResult<IEnumerable<Album>>> GetAlbums()
+    public async Task<ActionResult<IEnumerable<AlbumDetailsDTO>>> GetAlbums()
     {
         var user = await _currentUserService.GetCurrentUserAsync();
         var albums = _unitOfWork.AlbumRepository.GetAlbumsByAuthenticatedUser(user.Id, user.Type);
 
-        return Ok(albums);
+        return Ok(albums.ToAlbumDetailsDTOList());
+    }
+
+    [HttpPost]
+    [Route("albums/share/{id}")]
+    public async Task<IActionResult> Share(int id)
+    {
+        var user = await _currentUserService.GetCurrentUserAsync();
+        var shareCode = _albumShareService.ShareAlbum(id, user.Id);
+
+        return Ok(new { ShareCode = shareCode, Message = "Compartilhado com sucesso" });
     }
 
     [HttpGet]
     [Route("albums/shered/{shareCode}")]
-    public async Task<IActionResult> GetAlbumByShareCode(string shareCode) 
+    public async Task<ActionResult<AlbumDetailsDTO>> GetAlbumByShareCode(string shareCode) 
     {
         var albumShare = _unitOfWork.AlbumShareRepository.Get(a => a.ShareCode == shareCode);
 
@@ -56,6 +72,6 @@ public class ApplicationUserController : ControllerBase
             _unitOfWork.Commit();
         }
 
-        return Ok(album);
+        return Ok(album.ToAlbumDetailsDTO());
     }
 }
