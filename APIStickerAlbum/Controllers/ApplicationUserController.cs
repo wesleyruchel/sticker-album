@@ -30,7 +30,7 @@ public class ApplicationUserController : ControllerBase
     }
 
     [HttpGet]
-    [Route("add/album/{shareCode}")]
+    [Route("albums/shered/{shareCode}")]
     public async Task<IActionResult> GetAlbumByShareCode(string shareCode) 
     {
         var albumShare = _unitOfWork.AlbumShareRepository.Get(a => a.ShareCode == shareCode);
