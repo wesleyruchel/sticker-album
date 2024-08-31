@@ -89,6 +89,7 @@ public class AuthController : ControllerBase
             Type = modelDTO.Type!,
             FirstName = modelDTO.FirstName!,
             LastName = modelDTO.LastName!,
+            BornDate = modelDTO.BornDate,
             Email = modelDTO.Email,
             SecurityStamp = Guid.NewGuid().ToString(),
             UserName = modelDTO.Username
