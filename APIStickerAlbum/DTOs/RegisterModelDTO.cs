@@ -12,7 +12,7 @@ public class RegisterModelDTO
     
     public string? LastName { get; set; }
 
-    public DateTime BornDate { get; set; }
+    public DateTime? BornDate { get; set; }
 
     [Required(ErrorMessage = "O nome de usuário é obrigatório")]
     public string? Username {  get; set; }

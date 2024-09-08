@@ -39,6 +39,7 @@ public class AuthController : ControllerBase
             var userRoles = await _userManager.GetRolesAsync(user);
             var authClaims = new List<Claim>
             {
+                new Claim(ClaimTypes.Role, user.Type),
                 new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                 new Claim(ClaimTypes.Name, user.UserName!),
                 new Claim(ClaimTypes.Email, user.Email!),
@@ -54,7 +55,7 @@ public class AuthController : ControllerBase
             var token = _tokenService.GenerateAccessToken(authClaims, _configuration);
             var refreshToken = _tokenService.GenerateRefreshToken();
 
-            _ = int.TryParse(_configuration["JWT:RefreshTokenValidityMinutes"], out int RefreshTokenValidityMinutes);
+            _ = int.TryParse(_configuration["JWT:RefreshTokenValidityInMinutes"], out int RefreshTokenValidityMinutes);
 
             user.RefreshTokenExpiryTime = DateTime.UtcNow.AddMinutes(RefreshTokenValidityMinutes);
             user.RefreshToken = refreshToken;
@@ -63,13 +64,13 @@ public class AuthController : ControllerBase
 
             return Ok(new
             {
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
-                refreshToken = refreshToken,
-                Expiration = token.ValidTo
+                accessToken = new JwtSecurityTokenHandler().WriteToken(token),
+                refreshToken,
+                expiration = token.ValidTo
             });
         }
 
-        return Unauthorized();
+        return Unauthorized(new ResponseDTO { Status = "Falha", Message = "Usuário ou senha inválidos" });
     }
 
     [HttpPost]
@@ -115,10 +116,10 @@ public class AuthController : ControllerBase
             return BadRequest("Requisição cliente inválida");
         }
 
-        string? acessToken = modelDTO.AcessToken ?? throw new ArgumentNullException(nameof(modelDTO));
+        string? accessToken = modelDTO.AcessToken ?? throw new ArgumentNullException(nameof(modelDTO));
         string? refreshToken = modelDTO.RefreshToken ?? throw new ArgumentNullException(nameof(modelDTO));
 
-        var principal = _tokenService.GetPrincipalFromExpiredToken(acessToken!, _configuration);
+        var principal = _tokenService.GetPrincipalFromExpiredToken(accessToken!, _configuration);
 
         if (principal is null)
         {
@@ -134,7 +135,7 @@ public class AuthController : ControllerBase
             return BadRequest("Token de acesso inválido");
         }
 
-        var newAcessToken = _tokenService.GenerateAccessToken(principal.Claims.ToList(), _configuration);
+        var newAccessToken = _tokenService.GenerateAccessToken(principal.Claims.ToList(), _configuration);
         var newRefreshToken = _tokenService.GenerateRefreshToken();
 
         user.RefreshToken = newRefreshToken;
@@ -143,7 +144,7 @@ public class AuthController : ControllerBase
 
         return Ok(new
         {
-            acessToken = new JwtSecurityTokenHandler().WriteToken(newAcessToken),
+            accessToken = new JwtSecurityTokenHandler().WriteToken(newAccessToken),
             refreshToken = newRefreshToken
         });
     }
