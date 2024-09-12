@@ -1,6 +1,7 @@
 ﻿using APIStickerAlbum.Context;
 using APIStickerAlbum.Interfaces;
 using APIStickerAlbum.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace APIStickerAlbum.Repositories;
 
@@ -9,5 +10,12 @@ public class LearnersStickerRepository : Repository<LearnersSticker>, ILearnersS
     public LearnersStickerRepository(APIStickerAlbumDbContext context) : base(context)
     {
 
+    }
+
+    public IEnumerable<LearnersSticker> GetStickersAlbumByAlbumId(int albumId)
+    {
+        return _context.LearnersStickers
+            .Where(ls => ls.Sticker.AlbumId == albumId)
+            .ToList();
     }
 }
