@@ -18,14 +18,30 @@ public class CurrentUserService : ICurrentUserService
 
     public string GetUserId()
     {
+        #pragma warning disable CS8602 
         return _contextAccessor
-            .HttpContext?
-            .User?.FindFirst(ClaimTypes.NameIdentifier)
-            .Value!;
+                .HttpContext
+                .User
+                .FindFirst(ClaimTypes.NameIdentifier)
+                .Value;
+        #pragma warning restore CS8602 
+    }
+
+    public string GetUserRole()
+    {
+        #pragma warning disable CS8602
+        return _contextAccessor
+                .HttpContext
+                .User
+                .FindFirst(ClaimTypes.Role)
+                .Value;
+        #pragma warning restore CS8602
     }
 
     public async Task<ApplicationUser> GetCurrentUserAsync()
     {
+        #pragma warning disable CS8603
         return await _userManager.FindByIdAsync(GetUserId());
+        #pragma warning restore CS8603
     }
 }
