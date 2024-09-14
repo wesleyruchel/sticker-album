@@ -27,7 +27,7 @@ public class CurrentUserService : ICurrentUserService
         #pragma warning restore CS8602 
     }
 
-    public string GetUserRole()
+    public string GetUserType()
     {
         #pragma warning disable CS8602
         return _contextAccessor
