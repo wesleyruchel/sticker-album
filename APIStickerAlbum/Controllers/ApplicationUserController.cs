@@ -4,6 +4,7 @@ using APIStickerAlbum.Interfaces;
 using APIStickerAlbum.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 
 namespace APIStickerAlbum.Controllers;
 
@@ -27,6 +28,14 @@ public class ApplicationUserController : ControllerBase
     }
 
     [HttpGet]
+    [Route("profile")]
+    public async Task<ActionResult<ApplicationUserProfileDTO>> GetProfile()
+    {
+        var user = await _currentUserService.GetCurrentUserAsync();
+        return Ok(user.ToAppUserProfileDTO());
+    }
+
+    [HttpGet]
     [Route("albums")]
     public async Task<ActionResult<IEnumerable<AlbumDetailsDTO>>> GetAlbums()
     {
@@ -38,7 +47,7 @@ public class ApplicationUserController : ControllerBase
 
     [HttpPost]
     [Route("albums/share/{id}")]
-    public async Task<IActionResult> Share(int id)
+    public async Task<ActionResult> Share(int id)
     {
         var user = await _currentUserService.GetCurrentUserAsync();
         var shareCode = _albumShareService.ShareAlbum(id, user.Id);
@@ -46,8 +55,8 @@ public class ApplicationUserController : ControllerBase
         return Ok(new { ShareCode = shareCode, Message = "Compartilhado com sucesso" });
     }
 
-    [HttpGet]
-    [Route("albums/shered/{shareCode}")]
+    [HttpPost]
+    [Route("albums/shared/{shareCode}")]
     public async Task<ActionResult<AlbumDetailsDTO>> GetAlbumByShareCode(string shareCode)
     {
         var albumShare = _unitOfWork.AlbumShareRepository.Get(a => a.ShareCode == shareCode);
@@ -76,6 +85,32 @@ public class ApplicationUserController : ControllerBase
         return Ok(album.ToAlbumDetailsDTO());
     }
 
+    [HttpGet]
+    [Route("albums/shared/correction/stickers")]
+    public async Task<ActionResult<IEnumerable<AlbumsStickersToCorrectionDTO>>> GetSharedAlbumsWithStickersForCorrecation()
+    {
+        var user = await _currentUserService.GetCurrentUserAsync();
+
+        if (user is null || !user.Type.Equals("educador", StringComparison.CurrentCultureIgnoreCase))
+            return Unauthorized();
+
+        var result = await _unitOfWork.AlbumShareRepository.GetAlbumsStickersToCorrectionAsync(user.Id);
+
+        if (result.IsNullOrEmpty())
+            return NotFound();
+
+        return Ok(result);
+    }
+
+    [HttpGet]
+    [Route("albums/{id}/stickers")]
+    public ActionResult<IEnumerable<LearnersStickersDTO>> GetStickerAlbum(int id)
+    {
+        var learnersStickers = _unitOfWork.LearnersStickerRepository.GetStickersAlbumByAlbumId(id);
+        return Ok(learnersStickers.ToLearnersStickersDTOList());
+    }
+
+
     [HttpPost]
     [Route("albums/stickers")]
     public async Task<ActionResult<Sticker>> PostStickerAlbum(LearnerStickerCreateDTO learnerStickerCreateDTO)
@@ -85,7 +120,7 @@ public class ApplicationUserController : ControllerBase
 
         var user = await _currentUserService.GetCurrentUserAsync();
         var learnerSticker = new LearnersSticker
-        { 
+        {
             UserId = user.Id,
             StickerId = learnerStickerCreateDTO.StickerId
         };
@@ -98,9 +133,20 @@ public class ApplicationUserController : ControllerBase
             learnerSticker.ImageUrl = await _storageService.UploadFileAsync(new MemoryStream(imageBytes), fileName, "image/jpeg");
         }
 
-        var created = _unitOfWork.LearnersStickerRepository.Create(learnerSticker);
-        _unitOfWork.Commit();
+        var exists = _unitOfWork.LearnersStickerRepository.Get(ls => ls.UserId == learnerSticker.UserId && ls.StickerId == learnerSticker.StickerId);
 
-        return Ok(created);
+        if (exists is not null)
+        {
+            exists.ImageUrl = learnerSticker.ImageUrl;
+            var result = _unitOfWork.LearnersStickerRepository.Update(exists);
+            _unitOfWork.Commit();
+            return Ok(result);
+        }
+        else
+        {
+            var result = _unitOfWork.LearnersStickerRepository.Create(learnerSticker);
+            _unitOfWork.Commit();
+            return Ok(result);
+        }
     }
 }
