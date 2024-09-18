@@ -5,6 +5,7 @@ using APIStickerAlbum.Interfaces;
 using APIStickerAlbum.Models;
 using APIStickerAlbum.Repositories;
 using APIStickerAlbum.Services;
+using APIStickerAlbum.Services.Middlewares;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -16,6 +17,7 @@ using System.Text.Json.Serialization;
 var builder = WebApplication.CreateBuilder(args);
 var sqlConn = builder.Configuration.GetConnectionString("DefaultConnection");
 
+builder.Services.AddHttpClient();
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add(typeof(ApiExceptionFilter));
@@ -24,6 +26,15 @@ builder.Services.AddControllers(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
 });
+
+var OrigensComAcessoPermitido = "_origensComAcessoPermitido";
+
+builder.Services.AddCors(options => options.AddPolicy(name: OrigensComAcessoPermitido, policy =>
+{
+    policy.WithOrigins("*")
+        .AllowAnyHeader()
+        .AllowAnyMethod();
+}));
 
 builder.Services.AddEndpointsApiExplorer();
 
@@ -96,6 +107,7 @@ builder.Services.AddScoped<IAlbumShareRepository, AlbumShareRepository>();
 builder.Services.AddScoped<IAlbumShareService, AlbumShareService>();
 builder.Services.AddScoped<IStickerRepository, StickerRepository>();
 builder.Services.AddScoped<ILearnersAlbumRepository, LearnersAlbumRepository>();
+builder.Services.AddScoped<ILearnersStickerRepository, LearnersStickerRepository>();
 builder.Services.AddScoped<IStorageService, LocalStorageService>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
@@ -110,6 +122,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRouting();
+app.UseCors(OrigensComAcessoPermitido);
 app.UseAuthorization();
+app.UseMiddleware<OwnershipAlbumMiddleware>();
 app.MapControllers();
 app.Run();
