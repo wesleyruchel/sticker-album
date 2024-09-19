@@ -3,6 +3,7 @@ using APIStickerAlbum.DTOs.Mappings;
 using APIStickerAlbum.Interfaces;
 using APIStickerAlbum.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -148,5 +149,35 @@ public class ApplicationUserController : ControllerBase
             _unitOfWork.Commit();
             return Ok(result);
         }
+    }
+
+    [HttpPatch]
+    [Route("albums/stickers/{id}")]
+    public ActionResult UpdateStatusLearnerSticker(int id, JsonPatchDocument<LearnerStickerUpdateStatusDTO> patchStickerUpdateStatusDTO)
+    {
+        if (patchStickerUpdateStatusDTO is null || id < 1)
+            return BadRequest();
+
+        var learnerSticker = _unitOfWork.LearnersStickerRepository.Get(ls => ls.Id == id);
+
+        if (learnerSticker is null)
+            return NotFound();
+
+        var learnerStickerUpdateStatus = new LearnerStickerUpdateStatusDTO
+        {
+            Status = learnerSticker.Status,
+        };
+
+        patchStickerUpdateStatusDTO.ApplyTo(learnerStickerUpdateStatus, ModelState);
+
+        if (!ModelState.IsValid || !TryValidateModel(learnerStickerUpdateStatus))
+            return BadRequest(ModelState);
+
+        learnerSticker.Status = learnerStickerUpdateStatus.Status;
+
+        _unitOfWork.LearnersStickerRepository.Update(learnerSticker);
+        _unitOfWork.Commit();
+
+        return Ok();
     }
 }
