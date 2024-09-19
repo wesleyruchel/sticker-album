@@ -18,27 +18,57 @@ public class AlbumShareRepository : Repository<AlbumShare>, IAlbumShareRepositor
         return await _context.AlbumsShares
             .Where(tp => tp.SharedByUserId == sharedByUserId)
             .Join(_context.EducatorsAlbums,
-                  tabelaPrincipal => tabelaPrincipal.AlbumId,
-                  tabelaB => tabelaB.AlbumId,
-                  (tabelaPrincipal, tabelaB) => new { tabelaPrincipal, tabelaB })
-            .Join(_context.Stickers,
-                  tb => tb.tabelaB.AlbumId,
-                  tabelaC => tabelaC.AlbumId,
-                  (tb, tabelaC) => new { tb.tabelaPrincipal, tb.tabelaB, tabelaC })
-            .Join(_context.LearnersStickers,
-                  tc => tc.tabelaC.Id,
-                  tabelaA => tabelaA.StickerId,
-                  (tc, tabelaA) => new { tc.tabelaPrincipal, tc.tabelaB, tc.tabelaC, tabelaA })
-            .Join(_context.Users,
-                  ta => ta.tabelaA.UserId,
-                  user => user.Id,
-                  (ta, user) => new AlbumsStickersToCorrectionDTO
+                  albumsShares => albumsShares.AlbumId,
+                  educatorsAlbums => educatorsAlbums.AlbumId,
+                  (albumsShares, educatorsAlbums) => new
                   {
-                      UserName = user.UserName,
-                      UserFirstName = user.FirstName,
-                      StickerId = ta.tabelaA.StickerId,
-                      Status = ta.tabelaA.Status,
-                      ImageUrl = ta.tabelaA.ImageUrl,
+                      albumsShares,
+                      educatorsAlbums
+                  })
+            .Join(_context.Albums,
+                resultSelector => resultSelector.educatorsAlbums.AlbumId,
+                albums => albums.Id,
+                (resultSelector, albums) => new
+                {
+                    resultSelector.albumsShares,
+                    resultSelector.educatorsAlbums,
+                    albums
+                })
+            .Join(_context.Stickers,
+                  resultSelector => resultSelector.albums.Id,
+                  stickers => stickers.AlbumId,
+                  (resultSelector, stickers) => new
+                  {
+                      resultSelector.albumsShares,
+                      resultSelector.educatorsAlbums,
+                      resultSelector.albums,
+                      stickers
+                  })
+            .Join(_context.LearnersStickers,
+                  resultSelector => resultSelector.stickers.Id,
+                  learnersStickers => learnersStickers.StickerId,
+                  (resultSelector, learnersStickers) => new
+                  {
+                      resultSelector.albumsShares,
+                      resultSelector.educatorsAlbums,
+                      resultSelector.albums,
+                      resultSelector.stickers,
+                      learnersStickers
+                  })
+            .Join(_context.Users,
+                  resultSelector => resultSelector.learnersStickers.UserId,
+                  users => users.Id,
+                  (resultSelector, users) => new AlbumsStickersToCorrectionDTO
+                  {
+                      UserName = users.UserName,
+                      UserFirstName = users.FirstName,
+                      AlbumId = resultSelector.albums.Id,
+                      AlbumTitle = resultSelector.albums.Title,
+                      UserStickerId = resultSelector.learnersStickers.Id,
+                      StickerTitle = resultSelector.stickers.Title,
+                      StickerDescription = resultSelector.stickers.Description,
+                      Status = resultSelector.learnersStickers.Status,
+                      ImageUrl = resultSelector.learnersStickers.ImageUrl,
                   })
             .ToListAsync();
     }
