@@ -12,10 +12,10 @@ public class LearnersStickerRepository : Repository<LearnersSticker>, ILearnersS
 
     }
 
-    public IEnumerable<LearnersSticker> GetStickersAlbumByAlbumId(int albumId)
+    public IEnumerable<LearnersSticker> GetStickersAlbumByAlbumId(int userId, int albumId)
     {
         return _context.LearnersStickers
-            .Where(ls => ls.Sticker.AlbumId == albumId)
+            .Where(ls => ls.UserId == userId && ls.Sticker.AlbumId == albumId)
             .ToList();
     }
 }

@@ -105,9 +105,10 @@ public class ApplicationUserController : ControllerBase
 
     [HttpGet]
     [Route("albums/{id}/stickers")]
-    public ActionResult<IEnumerable<LearnersStickersDTO>> GetStickerAlbum(int id)
+    public async Task<ActionResult<IEnumerable<LearnersStickersDTO>>> GetStickerAlbum(int id)
     {
-        var learnersStickers = _unitOfWork.LearnersStickerRepository.GetStickersAlbumByAlbumId(id);
+        var user = await _currentUserService.GetCurrentUserAsync();
+        var learnersStickers = _unitOfWork.LearnersStickerRepository.GetStickersAlbumByAlbumId(user.Id, id);
         return Ok(learnersStickers.ToLearnersStickersDTOList());
     }
 
