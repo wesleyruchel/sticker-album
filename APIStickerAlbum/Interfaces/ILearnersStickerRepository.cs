@@ -4,6 +4,6 @@ namespace APIStickerAlbum.Interfaces
 {
     public interface ILearnersStickerRepository : IRepository<LearnersSticker> 
     {
-        IEnumerable<LearnersSticker> GetStickersAlbumByAlbumId(int albumId);
+        IEnumerable<LearnersSticker> GetStickersAlbumByAlbumId(int userId, int albumId);
     }
 }
