@@ -2,5 +2,5 @@
 
 public interface IStorageService
 {
-    Task<string> UploadFileAsync(Stream fileStream, string fileName, string contentType);
+    Task<string> UploadFileAsync(string base64File, string fileName);
 }

@@ -98,7 +98,7 @@ public class ApplicationUserController : ControllerBase
         var result = await _unitOfWork.AlbumShareRepository.GetAlbumsStickersToCorrectionAsync(user.Id);
 
         if (result.IsNullOrEmpty())
-            return NotFound();
+            return new List<AlbumsStickersToCorrectionDTO>();
 
         return Ok(result);
     }
@@ -129,10 +129,9 @@ public class ApplicationUserController : ControllerBase
 
         if (!string.IsNullOrEmpty(learnerStickerCreateDTO.ImageBase64))
         {
-            var imageBytes = Convert.FromBase64String(learnerStickerCreateDTO.ImageBase64);
             var fileName = $"{Guid.NewGuid()}.jpg";
 
-            learnerSticker.ImageUrl = await _storageService.UploadFileAsync(new MemoryStream(imageBytes), fileName, "image/jpeg");
+            learnerSticker.ImageUrl = await _storageService.UploadFileAsync(learnerStickerCreateDTO.ImageBase64, fileName);
         }
 
         var exists = _unitOfWork.LearnersStickerRepository.Get(ls => ls.UserId == learnerSticker.UserId && ls.StickerId == learnerSticker.StickerId);

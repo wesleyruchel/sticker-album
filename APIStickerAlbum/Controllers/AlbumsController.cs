@@ -70,10 +70,9 @@ namespace APIStickerAlbum.Controllers
 
             if (!string.IsNullOrEmpty(albumCreateDTO.ImageBase64))
             {
-                var imageBytes = Convert.FromBase64String(albumCreateDTO.ImageBase64);
                 var fileName = $"{Guid.NewGuid()}.jpg";
 
-                album!.ImageUrl = await _storageService.UploadFileAsync(new MemoryStream(imageBytes), fileName, "image/jpeg");
+                album!.ImageUrl = await _storageService.UploadFileAsync(albumCreateDTO.ImageBase64, fileName);
             }
 
             album!.EducatorsAlbums = new List<EducatorsAlbum>
@@ -101,10 +100,9 @@ namespace APIStickerAlbum.Controllers
 
             if (!string.IsNullOrEmpty(albumUpdateDTO.ImageBase64))
             {
-                var imageBytes = Convert.FromBase64String(albumUpdateDTO.ImageBase64);
                 var fileName = $"{Guid.NewGuid()}.jpg";
 
-                album!.ImageUrl = await _storageService.UploadFileAsync(new MemoryStream(imageBytes), fileName, "image/jpeg");
+                album!.ImageUrl = await _storageService.UploadFileAsync(albumUpdateDTO.ImageBase64, fileName);
             }
             else
             {

@@ -8,10 +8,10 @@ public class LocalStorageService : IStorageService
 
     public LocalStorageService(IConfiguration _config)
     {
-        _storagePath = _config["LocalStorage:Path"]!;
+        _storagePath = "C:\\Temp";
 
         if (!Directory.Exists(_storagePath))
-        { 
+        {
             Directory.CreateDirectory(_storagePath);
         }
     }
@@ -20,11 +20,16 @@ public class LocalStorageService : IStorageService
     {
         var filePath = Path.Combine(_storagePath, fileName);
 
-        using(var fileStreamOutput = new FileStream(filePath, FileMode.Create, FileAccess.Write))
+        using (var fileStreamOutput = new FileStream(filePath, FileMode.Create, FileAccess.Write))
         {
             await fileStream.CopyToAsync(fileStreamOutput);
         }
 
         return $"/uploads/{fileName}";
+    }
+
+    public Task<string> UploadFileAsync(string base64File, string fileName)
+    {
+        throw new NotImplementedException();
     }
 }

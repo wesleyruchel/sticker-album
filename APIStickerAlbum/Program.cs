@@ -6,6 +6,7 @@ using APIStickerAlbum.Models;
 using APIStickerAlbum.Repositories;
 using APIStickerAlbum.Services;
 using APIStickerAlbum.Services.Middlewares;
+using Azure.Storage.Blobs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +16,7 @@ using System.Text;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
-var sqlConn = builder.Configuration.GetConnectionString("DefaultConnection");
+var sqlConn = builder.Configuration["ConnectionStrings:StickerAlbum:SqlDb"];
 
 builder.Services.AddHttpClient();
 builder.Services.AddControllers(options =>
@@ -102,6 +103,14 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddAuthorization();
 
 builder.Services.AddDbContext<APIStickerAlbumDbContext>(options => options.UseSqlServer(sqlConn));
+
+builder.Services.AddSingleton(x => 
+    new BlobServiceClient(builder.Configuration["ConnectionStrings:StickerAlbum:AzureStorage"]));
+
+builder.Services.AddScoped<IStorageService, AzureBlobStoreService>(x =>
+    new AzureBlobStoreService(
+        x.GetRequiredService<BlobServiceClient>(),
+        builder.Configuration["Storage:AzureStorage:ContainerName"]!));
 
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
