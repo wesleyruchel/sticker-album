@@ -32,11 +32,12 @@ builder.Services.AddControllers(options =>
     options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
 });
 
-var OrigensComAcessoPermitido = "_origensComAcessoPermitido";
+var CorsPolicy = "_CorsPolicy";
+var allowedOrigins =  builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
 
-builder.Services.AddCors(options => options.AddPolicy(name: OrigensComAcessoPermitido, policy =>
+builder.Services.AddCors(options => options.AddPolicy(name: CorsPolicy, policy =>
 {
-    policy.WithOrigins("*")
+    policy.WithOrigins(allowedOrigins!)
         .AllowAnyHeader()
         .AllowAnyMethod();
 }));
@@ -121,7 +122,7 @@ builder.Services.AddScoped<IAlbumShareService, AlbumShareService>();
 builder.Services.AddScoped<IStickerRepository, StickerRepository>();
 builder.Services.AddScoped<ILearnersAlbumRepository, LearnersAlbumRepository>();
 builder.Services.AddScoped<ILearnersStickerRepository, LearnersStickerRepository>();
-builder.Services.AddScoped<IStorageService, LocalStorageService>();
+//builder.Services.AddScoped<IStorageService, LocalStorageService>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 var app = builder.Build();
@@ -136,7 +137,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
-app.UseCors(OrigensComAcessoPermitido);
+app.UseCors(CorsPolicy);
 app.UseAuthorization();
 app.UseMiddleware<OwnershipAlbumMiddleware>();
 app.MapControllers();
