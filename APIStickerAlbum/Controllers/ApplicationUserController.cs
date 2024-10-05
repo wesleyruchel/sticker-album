@@ -139,6 +139,7 @@ public class ApplicationUserController : ControllerBase
         if (exists is not null)
         {
             exists.ImageUrl = learnerSticker.ImageUrl;
+            exists.Status = null;
             var result = _unitOfWork.LearnersStickerRepository.Update(exists);
             _unitOfWork.Commit();
             return Ok(result);
