@@ -1,3 +1,4 @@
+using APIStickerAlbum.Configurations;
 using APIStickerAlbum.Context;
 using APIStickerAlbum.Extensions;
 using APIStickerAlbum.Filters;
@@ -12,11 +13,16 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Serilog;
 using System.Text;
 using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 var sqlConn = builder.Configuration["ConnectionStrings:StickerAlbum:SqlDb"];
+
+SerilogSetup.ConfigureSerilog(builder.Configuration);
+
+builder.Host.UseSerilog();
 
 builder.Services.AddHttpClient();
 builder.Services.AddControllers(options =>
