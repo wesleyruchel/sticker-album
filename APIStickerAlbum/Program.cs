@@ -39,7 +39,7 @@ builder.Services.AddControllers(options =>
 });
 
 var CorsPolicy = "_CorsPolicy";
-var allowedOrigins =  builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
 
 builder.Services.AddCors(options => options.AddPolicy(name: CorsPolicy, policy =>
 {
@@ -111,14 +111,6 @@ builder.Services.AddAuthorization();
 
 builder.Services.AddDbContext<APIStickerAlbumDbContext>(options => options.UseSqlServer(sqlConn));
 
-builder.Services.AddSingleton(x => 
-    new BlobServiceClient(builder.Configuration["ConnectionStrings:StickerAlbum:AzureStorage"]));
-
-builder.Services.AddScoped<IStorageService, AzureBlobStoreService>(x =>
-    new AzureBlobStoreService(
-        x.GetRequiredService<BlobServiceClient>(),
-        builder.Configuration["Storage:AzureStorage:ContainerName"]!));
-
 builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -128,8 +120,22 @@ builder.Services.AddScoped<IAlbumShareService, AlbumShareService>();
 builder.Services.AddScoped<IStickerRepository, StickerRepository>();
 builder.Services.AddScoped<ILearnersAlbumRepository, LearnersAlbumRepository>();
 builder.Services.AddScoped<ILearnersStickerRepository, LearnersStickerRepository>();
-//builder.Services.AddScoped<IStorageService, LocalStorageService>();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+
+if (builder.Configuration["Storage:Local"] == "cloud")
+{
+    builder.Services.AddSingleton(x =>
+    new BlobServiceClient(builder.Configuration["ConnectionStrings:StickerAlbum:AzureStorage"]));
+
+    builder.Services.AddScoped<IStorageService, AzureBlobStoreService>(x =>
+        new AzureBlobStoreService(
+            x.GetRequiredService<BlobServiceClient>(),
+            builder.Configuration["Storage:AzureStorage:ContainerName"]!));
+}
+else
+{
+    builder.Services.AddScoped<IStorageService, LocalStorageService>();
+}
 
 var app = builder.Build();
 
@@ -138,6 +144,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseStaticFiles();
     app.ConfigureExceptionHandler();
 }
 
