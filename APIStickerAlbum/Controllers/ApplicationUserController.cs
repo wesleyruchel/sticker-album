@@ -87,15 +87,15 @@ public class ApplicationUserController : ControllerBase
     }
 
     [HttpGet]
-    [Route("albums/shared/correction/stickers")]
-    public async Task<ActionResult<IEnumerable<AlbumsStickersToCorrectionDTO>>> GetSharedAlbumsWithStickersForCorrecation()
+    [Route("albums/shared/correction/stickers/{allStickers:bool=false}")]
+    public async Task<ActionResult<IEnumerable<AlbumsStickersToCorrectionDTO>>> GetSharedAlbumsWithStickersForCorrecation(bool allStickers)
     {
         var user = await _currentUserService.GetCurrentUserAsync();
 
         if (user is null || !user.Type.Equals("educador", StringComparison.CurrentCultureIgnoreCase))
             return Unauthorized();
 
-        var result = await _unitOfWork.AlbumShareRepository.GetAlbumsStickersToCorrectionAsync(user.Id);
+        var result = await _unitOfWork.AlbumShareRepository.GetAlbumsStickersToCorrectionAsync(user.Id, allStickers);
 
         if (result.IsNullOrEmpty())
             return new List<AlbumsStickersToCorrectionDTO>();

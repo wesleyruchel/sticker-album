@@ -13,9 +13,9 @@ public class AlbumShareRepository : Repository<AlbumShare>, IAlbumShareRepositor
 
     }
 
-    public async Task<IEnumerable<AlbumsStickersToCorrectionDTO>> GetAlbumsStickersToCorrectionAsync(int sharedByUserId)
+    public async Task<IEnumerable<AlbumsStickersToCorrectionDTO>> GetAlbumsStickersToCorrectionAsync(int sharedByUserId, bool allStickers)
     {
-        return await _context.AlbumsShares
+        var result = await _context.AlbumsShares
             .Where(tp => tp.SharedByUserId == sharedByUserId)
             .Join(_context.EducatorsAlbums,
                   albumsShares => albumsShares.AlbumId,
@@ -55,6 +55,7 @@ public class AlbumShareRepository : Repository<AlbumShare>, IAlbumShareRepositor
                       resultSelector.stickers,
                       learnersStickers
                   })
+            .Where(ls => allStickers ? (ls.learnersStickers.Status == null || ls.learnersStickers.Status != null) : ls.learnersStickers.Status == null)
             .Join(_context.Users,
                   resultSelector => resultSelector.learnersStickers.UserId,
                   users => users.Id,
@@ -71,5 +72,10 @@ public class AlbumShareRepository : Repository<AlbumShare>, IAlbumShareRepositor
                       ImageUrl = resultSelector.learnersStickers.ImageUrl,
                   })
             .ToListAsync();
+
+        if (allStickers)
+            return result.OrderBy(r => r.AlbumId).ThenBy(r => r.UserName).ToList();
+
+        return result.ToList();
     }
 }
